@@ -26,11 +26,24 @@ const char* fragmentShaderSource = "#version 330 core\n"
 "	FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
 "}\n";
 
+//two triangles
 float vertices[] =
 {
-   -0.5f, -0.5f, 0.0f,
-	0.5f, -0.5f, 0.0f,
-	0.0f,  0.5f, 0.0f
+    -1.f,  -0.5f, 0.0f,   //
+	 0.f,  -0.5f, 0.0f,   //
+	-0.5f,  0.5f, 0.0f,  //
+
+	0.f, -0.5f, 0.0f,   //
+	1.f, -0.5f, 0.0f,   //
+	.5f,  0.5f, 0.0f,   //
+};
+
+//right side triangle
+float vertices2[] =
+{
+	0.f, -0.5f, 0.0f,   //
+	1.f, -0.5f, 0.0f,   //
+	.5f,  0.5f, 0.0f,   //
 };
 
 int TerminateOpenGL(std::string msg) 
