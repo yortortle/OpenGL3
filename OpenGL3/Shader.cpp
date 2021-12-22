@@ -103,10 +103,15 @@ void Shader::setInt(const std::string& name, int value) const
 
 void Shader::setFloat(const std::string& name, float value) const
 {
-	glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
+	glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+}
+
+void Shader::setVec4(const std::string& name, float value) const
+{
+	glUniform4f(getVertexUniformInt(name), 0.f, value, 0.0f, 1.0f);
 }
 
 int Shader::getVertexUniformInt(const std::string& name) const
 {
-	return glGetUniformLocation(IDd, name.c_str());
+	return glGetUniformLocation(ID, name.c_str());
 }

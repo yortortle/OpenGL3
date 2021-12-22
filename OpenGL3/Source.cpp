@@ -67,13 +67,14 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT);
 		{
 			//left triangle shaders
-			float timeValue = glfwGetTime();
-			float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
-			int vertexColorLocation = lShader.getVertexUniformInt("FrameColor");
+			float greenValue = (sin(glfwGetTime()) / 2.0f) + 0.5f;
 			lShader.use();
-			glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+			lShader.setVec4("FrameColor", greenValue);
+			//lShader.setFloat("xOffset", 0.5f);
+
 			glBindVertexArray(VAOs[0]);
 			glDrawArrays(GL_TRIANGLES, 0, 3);
+
 
 			//right triangle
 			rShader.use();

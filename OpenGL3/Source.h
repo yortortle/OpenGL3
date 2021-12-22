@@ -55,7 +55,6 @@ int TerminateOpenGL(std::string msg)
 	return -1;
 }
 
-
 const char* vertexShaderSource =
 "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"  //attribute position 0
