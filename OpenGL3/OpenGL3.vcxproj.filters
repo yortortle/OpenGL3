@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\Shaders">
+      <UniqueIdentifier>{514b3889-e7b2-4204-8b01-1ac0c9426717}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Shaders">
+      <UniqueIdentifier>{472dbf7f-5323-4bba-b829-2d3c1269c599}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp">
@@ -20,6 +26,9 @@
     </ClCompile>
     <ClCompile Include="glad.c">
       <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -29,5 +38,22 @@
     <ClInclude Include="Source.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="BaseVertex.vs">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="BaseFragment.fs">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="uniformVertex.vs">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="uniformFragment.fs">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -14,11 +14,11 @@ std::ostream& operator,(std::ostream& out, std::ostream& (*f)(std::ostream&)) {
     return out;
 }
 
-void log() {}
-
-template<typename First, typename ...Rest>
-void log(First&& first, Rest && ...rest)
-{
-    std::cout << std::forward<First>(first);
-    log(std::forward<Rest>(rest)...);
-}
+//void log() {}
+//
+//template<typename First, typename ...Rest>
+//void log(First&& first, Rest && ...rest)
+//{
+//    std::cout << std::forward<First>(first);
+//    log(std::forward<Rest>(rest)...);
+//}
