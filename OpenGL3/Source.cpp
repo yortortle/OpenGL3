@@ -2,6 +2,13 @@
 #include "Shader.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+// settings
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
 
 int main()
 {
@@ -22,43 +29,14 @@ int main()
 	Shader lShader = Shader("UniformVertex.vs", "UniformFragment.fs");
 	Shader rShader = Shader("BaseVertex.vs", "BaseFragment.fs");
 
-	//two triangles
-	//{
-		//// declares VBOS and VAOS
-		//unsigned int VBOs[2], VAOs[2];
-		//glGenVertexArrays(2, VAOs); // we can also generate multiple VAOs or buffers at the same time
-		//glGenBuffers(2, VBOs);
-
-		//// first (left) triangle setup
-		//glBindVertexArray(VAOs[0]);
-		//glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
-		//glBufferData(GL_ARRAY_BUFFER, sizeof(verticesLeftTriangle), verticesLeftTriangle, GL_STATIC_DRAW);
-		////position attribute
-		//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);	// Vertex attributes stay the same
-		//glEnableVertexAttribArray(0);
-
-		//// second (right) triangle setup
-		//glBindVertexArray(VAOs[1]);	// note that we bind to a different VAO now
-		//glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);	// and a different VBO
-		//glBufferData(GL_ARRAY_BUFFER, sizeof(verticesColorData), verticesColorData, GL_STATIC_DRAW);
-		////position attribute
-		//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);	// Vertex attributes stay the same
-		//glEnableVertexAttribArray(0);
-		////color attribute
-		//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));	// vertex attribute 1 (color data)
-		//glEnableVertexAttribArray(1);
-		//// glBindVertexArray(0); // no need to unbind at all as we directly bind a different VAO the next few lines
-		//// glBindBuffer(GL_ARRAY_BUFFER, 0); //no need to unbind
-	//}
-
 	//set up vertex data and buffers and configure the vertex attributes
 	float vertices[] = 
 	{
 		// positions          // colors           // texture coords
-		 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
-		 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
-		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 
+		 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   
+		 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   
+		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f, 
+		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,    
 	};
 
 	unsigned int indices[] = 
@@ -81,48 +59,13 @@ int main()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	// color attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
-	// texture coord attribute
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
 
-	//load and create a texture
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	//glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effectd on this texture object
-	// set the texture wrapping parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	// set texture filtering parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	// load image, create texture and generate mipmaps
-	int width, height, nrChannels;
-	// The FileSystem::getPath(...) is part of the GitHub repository so we can find files on any IDE/platform; replace it with your own image path.
-	unsigned char* data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-	stbi_image_free(data);
-
-	// uncomment this call to draw in wireframe polygons.
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-	int nrAttributes;
-	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
-	std::cout << "Maximum nr of vertex attributes supported: " << nrAttributes << std::endl;
+	rShader.use();
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -132,29 +75,36 @@ int main()
 		// rendering commands here
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-
-		//{
-		//	//left triangle shaders
-		//	float greenValue = (sin(glfwGetTime()) / 2.0f) + 0.5f;
-		//	lShader.use();
-		//	lShader.setVec4("FrameColor", greenValue);
-		//	//lShader.setFloat("xOffset", 0.5f);
-		//	glBindVertexArray(VAOs[0]);
-		//	glDrawArrays(GL_TRIANGLES, 0, 3);
-
-		//	//right triangle
-		//	rShader.use();
-		//	glBindVertexArray(VAOs[1]);
-		//	glDrawArrays(GL_TRIANGLES, 0, 3);
-		//}
-
+			
+		//square
 		{
-			// bind Texture
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, texture);
+			//glm::mat4 trans = glm::mat4(1.0);
+			//trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+			//trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0, 0.0, 1.0));
+			//trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+			//unsigned int transformLoc = glGetUniformLocation(rShader.ID, "transform");
+			//glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
-			// render container
 			rShader.use();
+
+			// create transformations
+			glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+			glm::mat4 view = glm::mat4(1.0f);
+			glm::mat4 projection = glm::mat4(1.0f);
+			model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+			view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+			projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+
+			//retrieve the matrix uniform locations
+			unsigned int modelLoc = glGetUniformLocation(rShader.ID, "model");
+			unsigned int viewLoc = glGetUniformLocation(rShader.ID, "view");
+			unsigned int projectionLoc = glGetUniformLocation(rShader.ID, "projection");
+			//pass them to the shaders (3 different ways)
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
+			rShader.setMat4("projection", projection);
+			//rShader.setMat4("projection", projection);
+
 			glBindVertexArray(VAO);
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		}
@@ -208,4 +158,35 @@ void processInput(GLFWwindow* window)
 		glfwSetWindowShouldClose(window, true);
 	}
 }
+
+
+//load and create a texture
+//unsigned int texture;
+//glGenTextures(1, &texture);
+//glActiveTexture(GL_TEXTURE0);
+//glBindTexture(GL_TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effectd on this texture object
+// set the texture wrapping parameters
+//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+// set texture filtering parameters
+//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+// load image, create texture and generate mipmaps
+/*int width, height, nrChannels;
+unsigned char* data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+if (data)
+{
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_2D);
+}
+else
+{
+	std::cout << "Failed to load texture" << std::endl;
+}
+stbi_image_free(data);*/
+
+
+
+// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
