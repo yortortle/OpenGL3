@@ -1,14 +1,4 @@
 #include "Source.h"
-#include "Shader.h"
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-// settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
 
 int main()
 {
@@ -30,21 +20,6 @@ int main()
 	Shader rShader = Shader("BaseVertex.vs", "BaseFragment.fs");
 
 	//set up vertex data and buffers and configure the vertex attributes
-	float vertices[] = 
-	{
-		// positions          // colors           // texture coords
-		 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   
-		 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   
-		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f, 
-		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,    
-	};
-
-	unsigned int indices[] = 
-	{
-	   0, 1, 3, // first triangle
-	   1, 2, 3  // second triangle
-	};
-
 	unsigned int VBO, VAO, EBO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -53,7 +28,7 @@ int main()
 	glBindVertexArray(VAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(CubeVertices), CubeVertices, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
@@ -72,41 +47,44 @@ int main()
 		// input
 		processInput(window);
 
-		// rendering commands here
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-			
-		//square
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+
+		rShader.use();
+
+		// create transformations
+		glm::mat4 view = glm::mat4(1.0f);
+		glm::mat4 projection = glm::mat4(1.0f);
+		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+		projection = glm::perspective(glm::radians(60.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+
+		//retrieve the matrix uniform locations
+		unsigned int viewLoc = glGetUniformLocation(rShader.ID, "view");
+		unsigned int projectionLoc = glGetUniformLocation(rShader.ID, "projection");
+
+		//pass them to the shaders (3 different ways)
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
+		rShader.setMat4("projection", projection);
+
+		//bind VAO draw
+		glBindVertexArray(VAO);
+
+		//for 10 cube positions, get dynamic model matrix and draw cubec
+		for (unsigned int i = 0; i < 10; i++)
 		{
-			//glm::mat4 trans = glm::mat4(1.0);
-			//trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-			//trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0, 0.0, 1.0));
-			//trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
-			//unsigned int transformLoc = glGetUniformLocation(rShader.ID, "transform");
-			//glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, cubePositions[i]);
+			float angle = 20.0f * i;
 
-			rShader.use();
+			if (i % 3 == 0)
+			{
+				angle = glfwGetTime() * 25.0f;
+			}
 
-			// create transformations
-			glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-			glm::mat4 view = glm::mat4(1.0f);
-			glm::mat4 projection = glm::mat4(1.0f);
-			model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-			view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-			projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-
-			//retrieve the matrix uniform locations
-			unsigned int modelLoc = glGetUniformLocation(rShader.ID, "model");
-			unsigned int viewLoc = glGetUniformLocation(rShader.ID, "view");
-			unsigned int projectionLoc = glGetUniformLocation(rShader.ID, "projection");
-			//pass them to the shaders (3 different ways)
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
-			rShader.setMat4("projection", projection);
-			//rShader.setMat4("projection", projection);
-
-			glBindVertexArray(VAO);
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+			rShader.setMat4("model", model);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
 		//check and call events and swapping buffers
@@ -189,4 +167,11 @@ stbi_image_free(data);*/
 
 
 // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
+		
+	
+	//glm::mat4 trans = glm::mat4(1.0);
+	//trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+	//trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0, 0.0, 1.0));
+	//trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+	//unsigned int transformLoc = glGetUniformLocation(rShader.ID, "transform");
+	//glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
