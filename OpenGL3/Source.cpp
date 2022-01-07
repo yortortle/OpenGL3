@@ -27,15 +27,17 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(BasicCubeVertices), BasicCubeVertices, GL_STATIC_DRAW);
 	glBindVertexArray(VAO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	//light VAO, uses container VBO
 	unsigned int lightVAO;
 	glGenVertexArrays(1, &lightVAO);
 	glBindVertexArray(lightVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
 	while (!glfwWindowShouldClose(window))
@@ -45,7 +47,7 @@ int main()
 		lastFrame = currentFrame;
 		processInput(window);
 
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
 
@@ -53,44 +55,50 @@ int main()
 		glm::mat4 view = camera.GetViewMatrix();
 		glm::mat4 model = glm::mat4(1.0f);
 
+		//rotation around containercube
+		lightPos.x = 2.0f * sin(glfwGetTime());
+		lightPos.y = .5f;
+		lightPos.z = 1.5f * cos(glfwGetTime());
+
 		//container shader
 		{
-			ContainerShader.use();
-
-			model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+			//model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
 			//model = glm::rotate(model, glm::radians(30.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+
+			ContainerShader.use();
+			ContainerShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+			ContainerShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+			ContainerShader.setVec3("lightPos", lightPos);
+			ContainerShader.setVec3("viewPos", camera.Position);
 
 			ContainerShader.setMat4("view", view);
 			ContainerShader.setMat4("projection", projection);
 			ContainerShader.setMat4("model", model);
 
-			glDrawArrays(GL_TRIANGLES, 0, 36);
 			glBindVertexArray(VAO);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
 		//light shader
 		{
 			LightShader.use();
-			LightShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-			LightShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
 
-			model = glm::mat4(1.0f);
-			model = glm::translate(model, lightPos);
+			model = glm::translate(glm::mat4(1.0f), lightPos);
 			model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
 
-			LightShader.setMat4("model", model);
 			LightShader.setMat4("projection", projection);
 			LightShader.setMat4("view", view);
+			LightShader.setMat4("model", model);
 
-			glDrawArrays(GL_TRIANGLES, 0, 36);
 			glBindVertexArray(lightVAO);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
 		//check and call events and swapping buffers
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-
+	
 	// optional: de-allocate all resources once they've outlived their purpose:
 	glDeleteVertexArrays(1, &lightVAO);
 	glDeleteVertexArrays(1, &VAO);
