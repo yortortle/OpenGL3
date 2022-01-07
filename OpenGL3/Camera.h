@@ -16,11 +16,11 @@ enum Camera_Movement {
 };
 
 // Default camera values
-const float YAW = -90.0f;
-const float PITCH = 0.0f;
+const float YAW = -60.0f;
+const float PITCH = -20.0f;
 const float SPEED = 2.5f;
 const float SENSITIVITY = 0.1f;
-const float ZOOM = 60.0f;
+const float ZOOM = 65.0f;
 
 
 // An abstract camera class that processes input and calculates the corresponding Euler Angles, Vectors and Matrices for use in OpenGL
@@ -78,6 +78,9 @@ public:
             Position -= Right * velocity;
         if (direction == RIGHT)
             Position += Right * velocity;
+
+       //keeps the camera at ground level
+       // Position.y = 0.0f;
     }
 
     // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
@@ -108,8 +111,8 @@ public:
         Zoom -= (float)yoffset * 5;
         if (Zoom < 1.0f)
             Zoom = 1.0f;
-        if (Zoom > 90.0f)
-            Zoom = 90.0f;
+        if (Zoom > 120.0f)
+            Zoom = 120.0f;
     }
 
 private:

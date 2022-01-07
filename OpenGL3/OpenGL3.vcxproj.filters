@@ -67,5 +67,17 @@
     <None Include="uniformFragment.fs">
       <Filter>Source Files\Shaders</Filter>
     </None>
+    <None Include="ContainerFrag.fs">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="ContainerVert.vs">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="LightFrag.fs">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="LightVert.vs">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

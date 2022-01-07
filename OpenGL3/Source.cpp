@@ -7,90 +7,83 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(800, 600, "YortGL", NULL, NULL);
 	if (!window) return TerminateOpenGL("Failed to create GLFW window\n");
 	glfwMakeContextCurrent(window);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
-
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) return TerminateOpenGL("Failed to init GLAD\n");
-
 	glViewport(0, 0, 800, 600);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	Shader lShader = Shader("UniformVertex.vs", "UniformFragment.fs");
-	Shader rShader = Shader("BaseVertex.vs", "BaseFragment.fs");
+	Shader ContainerShader = Shader("ContainerVert.vs", "ContainerFrag.fs");
+	Shader LightShader	   = Shader("LightVert.vs", "LightFrag.fs");
 
 	//set up vertex data and buffers and configure the vertex attributes
-	unsigned int VBO, VAO, EBO;
+	unsigned int VBO, VAO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
-
-	glBindVertexArray(VAO);
-
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(CubeVertices), CubeVertices, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(BasicCubeVertices), BasicCubeVertices, GL_STATIC_DRAW);
+	glBindVertexArray(VAO);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	// color attribute 
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
 
-	rShader.use();
+	//light VAO, uses container VBO
+	unsigned int lightVAO;
+	glGenVertexArrays(1, &lightVAO);
+	glBindVertexArray(lightVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
 
 	while (!glfwWindowShouldClose(window))
 	{
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
-
-		// input
 		processInput(window);
 
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
 
-		rShader.use();
-
-		// create transformations
-		const float radius = 10.0f;
-		float camX = sin(glfwGetTime()) * radius;
-		float camZ = cos(glfwGetTime()) * radius;
-
-		//camera setup
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 		glm::mat4 view = camera.GetViewMatrix();
+		glm::mat4 model = glm::mat4(1.0f);
 
-		//pass them to the shaders (3 different ways)
-		rShader.setMat4("view", view);
-		rShader.setMat4("projection", projection);
-
-		//bind VAO draw
-		glBindVertexArray(VAO);
-
-		//for 10 cube positions, get dynamic model matrix and draw cubec
-		for (unsigned int i = 0; i < 10; i++)
+		//container shader
 		{
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, cubePositions[i]);
-			float angle = 20.0f * i;
+			ContainerShader.use();
 
-			if (i % 3 == 0)
-			{
-				angle = glfwGetTime() * 25.0f;
-			}
+			model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+			//model = glm::rotate(model, glm::radians(30.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 
-			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-			rShader.setMat4("model", model);
+			ContainerShader.setMat4("view", view);
+			ContainerShader.setMat4("projection", projection);
+			ContainerShader.setMat4("model", model);
+
 			glDrawArrays(GL_TRIANGLES, 0, 36);
+			glBindVertexArray(VAO);
+		}
+
+		//light shader
+		{
+			LightShader.use();
+			LightShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+			LightShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, lightPos);
+			model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+
+			LightShader.setMat4("model", model);
+			LightShader.setMat4("projection", projection);
+			LightShader.setMat4("view", view);
+
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+			glBindVertexArray(lightVAO);
 		}
 
 		//check and call events and swapping buffers
@@ -99,9 +92,9 @@ int main()
 	}
 
 	// optional: de-allocate all resources once they've outlived their purpose:
+	glDeleteVertexArrays(1, &lightVAO);
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &EBO);
 
 	glfwTerminate();
 	return 0; 
@@ -176,47 +169,3 @@ void processInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		camera.ProcessKeyboard(RIGHT, deltaTime);
 }
-
-
-
-
-
-
-
-//load and create a texture
-//unsigned int texture;
-//glGenTextures(1, &texture);
-//glActiveTexture(GL_TEXTURE0);
-//glBindTexture(GL_TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effectd on this texture object
-// set the texture wrapping parameters
-//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-// set texture filtering parameters
-//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-// load image, create texture and generate mipmaps
-/*int width, height, nrChannels;
-unsigned char* data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
-if (data)
-{
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-	glGenerateMipmap(GL_TEXTURE_2D);
-}
-else
-{
-	std::cout << "Failed to load texture" << std::endl;
-}
-stbi_image_free(data);*/
-
-
-
-// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		
-	
-	//glm::mat4 trans = glm::mat4(1.0);
-	//trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-	//trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0, 0.0, 1.0));
-	//trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
-	//unsigned int transformLoc = glGetUniformLocation(rShader.ID, "transform");
-	//glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));

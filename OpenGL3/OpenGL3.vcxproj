@@ -158,6 +158,10 @@
   <ItemGroup>
     <None Include="BaseFragment.fs" />
     <None Include="BaseVertex.vs" />
+    <None Include="ContainerFrag.fs" />
+    <None Include="ContainerVert.vs" />
+    <None Include="LightFrag.fs" />
+    <None Include="LightVert.vs" />
     <None Include="uniformFragment.fs" />
     <None Include="uniformVertex.vs" />
   </ItemGroup>
