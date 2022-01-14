@@ -1,3 +1,18 @@
+
+//light color changing on tick
+/*glm::vec3 lightColor;
+lightColor.x = sin(glfwGetTime() * 2.0f);
+lightColor.y = sin(glfwGetTime() * 0.7f);
+lightColor.z = sin(glfwGetTime() * 1.3f);*/
+
+//translating the cube on tick
+//model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+//float angle = 20.0f;
+//model = glm::rotate(model, glm::radians(30.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+
+
+
+
 //load and create a texture
 //unsigned int texture;
 //glGenTextures(1, &texture);
